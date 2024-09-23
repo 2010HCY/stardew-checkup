@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>星露谷“查缺补漏”</title>
+
+    <meta charset="UTF-8" />
+    <meta property="og:title" content="星露谷“查缺补漏”" />
+    <meta property="og:description" content="一个用来读取Stardew Valley存档文件的应用程序，检查各种成就和重大事件的进度，并列出其中缺少的内容。" />
+    <meta property="og:image" content="https://ytloe.github.io/stardew-checkup/img/og-embed-image.png" />
+    <meta property="twitter:image" content="https://ytloe.github.io/stardew-checkup/img/og-embed-image.png" />
+    <meta name="theme-color" content="#ffe0b0" />
+    <meta name="author" content="MouseyPounds" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" type="text/css" href="./css/stardew-checkup.css" />
+    <link rel="icon" type="image/png" href="./img/favicon_c.png" />
+
+    <script>
+      window.jQuery || document.write('<script src="./js/jquery-3.2.1.min.js"><\/script>');
+    </script>
+    <script>
+      window.Cookies || document.write('<script src="./js/js.cookie-2.2.1.min.js"><\/script>');
+    </script>
+    <script src="./js/stardew-checkup.js?v=5.0.0"></script>
+    <script src="./js/pako.min.js"></script>
+  </head>
+
+  <body>
+    <div id="TOC">
+      <h1>导航栏</h1>
+      <div id="TOC-details"></div>
+    </div>
+
+    <div id="header" class="panel">
+      <h1>星露谷“查缺补漏”</h1>
+      <h2 id="sec_about">关于</h2>
+      <p>
+        这个应用程序会读取<a href="http://stardewvalley.net/">星露谷物语(Stardew Valley)</a
+        >的存档文件，检查其中各种成就和重大事件的进度，并列出其中缺少的内容。目前他会检查46项成就的进度以及其他的进度和完成机制，包括爷爷的评价，姜岛建筑的解锁，完美度和玩家的社交关系
+      </p>
+      <p>
+        该应用程序支持版本1.6中的大多数更改和添加的内容，并且仅当检测到存档来自该版本时，特定于1.6的功能才应显示在结果中。<span class="strong note">
+          如果您在应用中加载1.6版本的存档，请做好可能看到剧透的准备。通过使用
+          输出偏好设置隐藏部分检查的结果，可以起到一定程度的防剧透作用，但新增的检查项标题仍然可见，且新增的物品仍会在原来检查项的详情中出现。</span
+        >
+      </p>
+      <p>
+        该应用程序使用Javascript编写，并使用<a href="https://jquery.com/">jQuery</a>，<a href="https://github.com/substack/semver-compare">
+          semver-compare</a
+        >和 <a href="https://github.com/js-cookie/js-cookie">Javascript Cookie</a>；<br />原项目托管在GitHub页面上，网址为：
+        <a href="https://mouseypounds.github.io/stardew-checkup/">https://mouseypounds.github.io/stardew-checkup/</a>;<br />
+        源代码仓库地址：
+        <a href="https://github.com/MouseyPounds/stardew-checkup">https://github.com/MouseyPounds/stardew-checkup</a>。<br />
+        请在
+        <a href="https://forums.stardewvalley.net/threads/web-apps-stardew-checkup-predictor-and-fair-helper.28393/">Stardew 官方论坛</a>
+        或者 在Discord上<span class="code">@mouseypounds</span>报告对该网站的bug，建议或其他反馈。
+      </p>
+      <p>
+        该汉化站点由
+        <a href="https://space.bilibili.com/446605604">羊驼loe</a> 个人翻译优化,以上网站都与我无关，想跟我报告翻译错误请直接b站私信注明来意。<br />
+        特别感谢：代码群改bug的大佬，群里协助翻译的小伙伴
+      </p>
+      <p>
+              该站点由
+              <a href="https://2010hcy.us.kg">静水深流</a> 博客托管页面<br />
+      </p>
+    </div>
+
+    <div id="input-container" class="panel">
+      <h2 id="sec_save_file">选择存档文件</h2>
+      <p>
+        选择下面的“输出偏好设置”；<span class="note">摘要</span> 部分列出了各项成就/目标是否已经达成；<span class="note">详情</span>
+        部分则包含诸如NPC好感事件清单或尚未获取物品的完整列表等内容
+        <span class="note">新版部分</span> 是指1.6版本新增的部分。
+      </p>
+      <fieldset id="output-prefs-old" class="radio_set">
+        <legend>输出偏好设置 (旧版部分)</legend>
+        <label><input type="radio" name="opt-old" value="show_all" /> 显示摘要和详情</label><br />
+        <label><input type="radio" name="opt-old" value="hide_details" checked="checked" /> 仅显示摘要，隐藏详情</label><br />
+        <label><input type="radio" name="opt-old" value="hide_all" /> 隐藏摘要和详情</label><br />
+      </fieldset>
+      <fieldset id="output-prefs-new" class="radio_set">
+        <legend>输出偏好设置 (新版部分)</legend>
+        <label><input type="radio" name="opt-new" value="show_all" /> 显示摘要和详情</label><br />
+        <label><input type="radio" name="opt-new" value="hide_details" /> 仅显示摘要，隐藏详情</label><br />
+        <label><input type="radio" name="opt-new" value="hide_all" checked="checked" /> 隐藏摘要和详情</label><br />
+      </fieldset>
+
+      <p>选择要检查的存档文件：<input type="file" id="file_select" /></p>
+      <p>
+        请使用以“您的农场名称_种子号”命名的完整存档文件 (<span class="path">例如“年入百万_148093307”</span>)；不要选错成带有_old的文件夹或<span
+          class="path"
+          >SaveGameInfo</span
+        >文件，因为它不包含所有必要的信息。
+      </p>
+
+      <p>默认存档文件位置（直接复制到文件夹上面粘贴即可）:</p>
+      <ul>
+        <li>Windows: <span class="path">%AppData%\StardewValley\Saves\</span></li>
+        <li>
+          Mac OSX &amp; Linux:
+          <span class="path">~/.config/StardewValley/Saves/</span>
+        </li>
+        <li>
+          Proton Steam (Ubuntu):
+          <span class="path"
+            >~/.steam/debian-installation/steamapps/compatdata/413150/pfx/drive_c/users/steamuser/AppData/Roaming/StardewValley/Saves/</span
+          >
+        </li>
+      </ul>
+    </div>
+
+    <div id="progress-container" class="panel">
+      <h2 id="sec_working">查缺补漏中...</h2>
+      <progress id="progress" value="0" max="100"></progress>
+    </div>
+
+    <div id="output-container" class="panel">
+      <h2 id="sec_results">结果</h2>
+      <output id="out"> </output>
+    </div>
+
+    <div id="PlayerList"></div>
+
+    <div id="changelog" class="panel">
+      <noscript><span class="error">Javascript在您的浏览器中似乎不受支持或被禁用。没有它，星露谷查缺补漏将无法工作。</span></noscript>
+      <h2 id="sec_changelog">更新日志</h2>
+      <ul>
+        <li>2024年4月22日 - vSpecial - 羊驼汉化一半</li>
+        <li>2024年4月18日 - v5.0.5 - 增加对压缩的switch存档的支持，修复1.6.4版本的问题，从NPC列表中移除松露蟹</li>
+        <li>2024年4月10日 - v5.0.4 - 修复书籍能力的错误</li>
+        <li>2024年4月2日 - v5.0.3 - 修复一些非常古老的错误</li>
+        <li>2024年3月30日 - v5.0.2 - 最终添加了更加友好的错误处理</li>
+        <li>2024年3月28日 - v5.0.1 - 移除潜入社交摘要的怪物</li>
+        <li>2024年3月19日 - v5.0 - 支持《星露谷物语》1.6版本</li>
+        <li>2021年1月7日 - v4.0.3 - 更多怪物狩猎更新，增加特别订单追踪功能</li>
+        <li>2021年1月3日 - v4.0.2 - 更新怪物狩猎计数，忽略钓鱼中的特殊家具物品，修复博物馆细节问题</li>
+        <li>2020年12月23日 - v4.0.1 - 修复一些多人游戏解析错误</li>
+        <li>2020年12月22日 - v4.0 - 引入输出偏好设置，并初步支持《星露谷物语》1.5版本</li>
+        <li>2020年7月24日 - v3.0.5 - 修复可错过事件检查的小错误；更新页脚中的论坛链接</li>
+        <li>2019年12月27日 - v3.0.4 - 修复玛鲁14心事件ID（感谢SweetGarage）和其他拼写错误（感谢debashisbiswas）</li>
+        <li>2019年12月7日 - v3.0.3 - 版本检测方式再次变更以处理类似1.4.2的语义化版本号</li>
+        <li>2019年12月1日 - v3.0.2 - 修复乔嘉发展总结中的错误</li>
+        <li>2019年11月30日 - v3.0.1 - 版本检测现在应能正确识别1.4版首日存档</li>
+        <li>2019年11月26日 - v3.0 - 支持《星露谷物语》1.4版本</li>
+        <li>2019年8月15日 - v2.5.1 - 修复社交输出中的重复问题；来自debashisbiswas的PR</li>
+        <li>2019年6月22日 - v2.5 - 在社交模块中添加了介绍任务概览 较早的更改隐藏</li>
+      </ul>
+      <div id="changelog_old" class="collapsible">
+        <h3>更早的更新日志</h3>
+        <button id="changelog_toggle" type="button" data-target="changelog_old_details">显示</button>
+        <ul class="initial_hide changelog_old_details">
+          <li>2019年2月22日 - v2.4.1 - 修复检测多人游戏有效农场帮手的错误</li>
+          <li>2019年1月30日 - v2.4 - 提高对iOS存档文件的支持</li>
+          <li>2019年1月2日 - v2.3.2 - 在祖父评估中加入多人游戏婚姻检测</li>
+          <li>2019年1月1日 - v2.3.1 - 修复上次更新引入的多人游戏处理错误</li>
+          <li>2018年12月30日 - v2.3 - 改善烹饪与制作总结中mod内容的处理</li>
+          <li>2018年10月3日 - v2.2.3 - 标记帕姆搬家后的一些佩妮好感度事件为不可能；修复星星果描述问题</li>
+          <li>2018年9月7日 - v2.2.2 - 当社区中心未完全完成时，不再标记Joja成就为不可能</li>
+          <li>2018年9月1日 - v2.2.1 - 检测来自mod的制作配方；折叠更新日志中较早的条目</li>
+          <li>2018年8月29日 - v2.2 - 社交总结中添加多角恋事件，并明确多NPC事件</li>
+          <li>2018年8月20日 - v2.1.2 - 修复Blobfish拼写错误并改进输入净化</li>
+          <li>2018年8月12日 - v2.1.1 - 修复鱼类数量计算错误（珍珠）</li>
+          <li>2018年8月12日 - v2.1 - 多人游戏存档中可以单独切换每个玩家的输出状态</li>
+          <li>2018年8月11日 - v2.0.2 - 修复与秘密便笺相关的鱼类数量计算错误</li>
+          <li>2018年6月25日 - v2.0.1 - 对烹饪结果和NPC进行合理性检查</li>
+          <li>2018年6月6日 - v2.0 - 所有相关部分均支持多人游戏</li>
+          <li>2018年5月26日 - v1.9.7 - 秘密便笺奖励错误修复</li>
+          <li>2018年5月24日 - v1.9.6 - 秘密便笺奖励进度；添加favicon；将初始配偶友谊最大值更改为星星果门槛</li>
+          <li>2018年5月21日 - v1.9.5 - 解决多人游戏矿洞层数异常问题；添加“愤怒”状态（在玩家触发对抗事件后）</li>
+          <li>2018年5月14日 - v1.9.4 - 修复因上次更新导致的SV 1.2版本任务完成问题</li>
+          <li>2018年5月12日 - v1.9.3 - 修复仅查看主机的任务完成情况</li>
+          <li>2018年5月10日 - v1.9.2 - 友谊状态，包括对1.2版本的“猜测”</li>
+          <li>2018年5月4日 - v1.9.1 - 增加对1.3版本（正在进行中）特性的额外支持</li>
+          <li>2018年5月1日 - v1.9 - 基础支持1.3版本（修复友谊解析），新内容支持将在后续推出</li>
+          <li>2018年4月14日 - v1.8 - 博物馆总结中添加生锈钥匙计数器及细微格式调整</li>
+          <li>2018年3月9日 - v1.7 - 在社交友谊总结中添加“好感度事件”</li>
+          <li>2018年2月7日 - v1.6 - 社交总结中的维基链接及当前技能等级的附加信息</li>
+          <li>2018年1月29日 - v1.5 - 在社交模块中添加完整的友谊点数总结</li>
+          <li>2017年9月10日 - v1.4 - 小错误修复</li>
+          <li>2017年6月28日 - v1.3 - 添加右侧导航链接（仅在加载存档后可见）</li>
+          <li>2017年6月27日 - v1.2 - 社区中心礼包与乔嘉超市进度</li>
+          <li>2017年6月23日 - v1.1 - 添加所需物品列表的维基链接</li>
+          <li>2017年6月22日 - v1.0 - 初始发布</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="footer" class="panel">
+      MouseyPounds的Stardew应用程序:
+      <a href="https://mouseypounds.github.io/stardew-checkup/">Stardew Checkup</a>
+      ||
+      <a href="https://mouseypounds.github.io/stardew-predictor/">Stardew Predictor</a>
+      ||
+      <a href="https://mouseypounds.github.io/stardew-fair-helper/">Stardew Fair Helper</a>
+      <br />
+      其他星露谷相关资源:<a href="http://stardewvalley.net/">官网</a> ||
+      <a href="http://store.steampowered.com/app/413150/Stardew_Valley/">Steam商店页面</a>
+      || <a href="https://www.gog.com/game/stardew_valley">GOG商店页面</a> || <a href="http://www.stardewvalleywiki.com/">Wiki</a> ||
+      <a href="https://forums.stardewvalley.net/index.php">论坛</a> || <a href="https://www.reddit.com/r/StardewValley">Subreddit</a> ||
+      <a href="https://discordapp.com/invite/StardewValley">Discord</a>
+      <br />
+      星露谷物语由作者：<a href="http://twitter.com/concernedape">ConcernedApe</a>
+      开发，并在大多数平台上自行发布。
+    </div>
+  </body>
+</html>
